@@ -1,0 +1,26 @@
+test_chapter_like_body_lines_do_not_create_extra_chapters (test_chapters.ChapterDetectionTests.test_chapter_like_body_lines_do_not_create_extra_chapters) ... ok
+test_custom_pattern_preserves_compact_classical_chapter_titles (test_chapters.ChapterDetectionTests.test_custom_pattern_preserves_compact_classical_chapter_titles) ... ok
+test_explicit_start_lines_override_automatic_ambiguity_checks (test_chapters.ChapterDetectionTests.test_explicit_start_lines_override_automatic_ambiguity_checks) ... ok
+test_standard_and_compact_chapter_titles_are_preserved (test_chapters.ChapterDetectionTests.test_standard_and_compact_chapter_titles_are_preserved) ... ok
+test_export_gap_changes_leave_synthesis_and_preview_unchanged (test_inference_gap.InferenceGapTests.test_export_gap_changes_leave_synthesis_and_preview_unchanged) ... ok
+test_internal_gap_change_is_rejected_without_modifying_existing_book (test_inference_gap.InferenceGapTests.test_internal_gap_change_is_rejected_without_modifying_existing_book) ... ok
+test_invalid_internal_gap_is_rejected (test_inference_gap.InferenceGapTests.test_invalid_internal_gap_is_rejected) ... ok
+test_legacy_worker_preserves_its_default_200ms_internal_gap (test_inference_gap.InferenceGapTests.test_legacy_worker_preserves_its_default_200ms_internal_gap) ... ok
+test_old_book_restores_its_original_internal_gap_before_config_overrides (test_inference_gap.InferenceGapTests.test_old_book_restores_its_original_internal_gap_before_config_overrides) ... ok
+test_old_numeric_false_pass_is_rechecked_without_resynthesis (test_pipeline_cache.QualityUpgradeTests.test_old_numeric_false_pass_is_rechecked_without_resynthesis) ... ok
+test_asr_failure_resumes_from_generated_audio (test_pipeline_cache.ResumeAndExportTests.test_asr_failure_resumes_from_generated_audio) ... ok
+test_equal_size_export_corruption_is_repaired_without_resynthesis (test_pipeline_cache.ResumeAndExportTests.test_equal_size_export_corruption_is_repaired_without_resynthesis) ... ok
+test_changed_critical_term_is_detected_after_normalization (test_quality.CriticalTermTests.test_changed_critical_term_is_detected_after_normalization) ... ok
+test_empty_or_duplicate_normalized_critical_terms_are_rejected (test_quality.CriticalTermTests.test_empty_or_duplicate_normalized_critical_terms_are_rejected) ... ok
+test_equivalent_critical_term_spelling_passes (test_quality.CriticalTermTests.test_equivalent_critical_term_spelling_passes) ... ok
+test_changed_numeric_structures_require_review (test_quality.NumericQualityTests.test_changed_numeric_structures_require_review) ... ok
+test_equivalent_numeric_readings_still_pass (test_quality.NumericQualityTests.test_equivalent_numeric_readings_still_pass) ... ok
+test_ordinary_punctuation_remains_ignorable (test_quality.NumericQualityTests.test_ordinary_punctuation_remains_ignorable) ... ok
+test_anonymous_and_cross_session_tokens_remain_rejected (test_studio_sessions.StudioSessionTests.test_anonymous_and_cross_session_tokens_remain_rejected) ... ok
+test_media_range_and_path_guards_work_with_both_cookies (test_studio_sessions.StudioSessionTests.test_media_range_and_path_guards_work_with_both_cookies) ... ok
+test_two_panels_in_one_browser_keep_both_audio_sessions (test_studio_sessions.StudioSessionTests.test_two_panels_in_one_browser_keep_both_audio_sessions) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 4.572s
+
+OK

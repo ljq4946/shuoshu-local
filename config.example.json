@@ -1,0 +1,24 @@
+{
+  "tts_adapter": "",
+  "device": "cuda:0",
+  "bf16": true,
+  "speed": 1.0,
+  "inference_gap_ms": null,
+  "max_chars": 180,
+  "max_retries": 2,
+  "gap_ms": 180,
+  "scene_gap_ms": 800,
+  "stage_timeout_seconds": 7200,
+  "qa": {
+    "max_cer": 0.08,
+    "max_gap": 4,
+    "min_chars_per_second": 0.5,
+    "max_chars_per_second": 14.0
+  },
+  "export": {
+    "lufs": -19.0,
+    "true_peak": -1.5,
+    "lra": 11.0,
+    "mp3_bitrate": "128k"
+  }
+}

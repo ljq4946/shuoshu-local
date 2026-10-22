@@ -1,0 +1,9 @@
+{
+  "checked_at_utc": "2026-10-22T11:01:12+00:00",
+  "protected_source_files_unchanged": 35,
+  "existing_book_project_unchanged": true,
+  "report_file_links_verified": 15,
+  "confirmed_reproduced_defects": 5,
+  "smoke_export_hashes_verified": 2,
+  "business_source_changes": []
+}

@@ -1,0 +1,50 @@
+{
+  "checked_at_utc": "2026-10-22T10:58:21+00:00",
+  "profile": {
+    "engine": "IndexTTS-2.5",
+    "revision": "d9e41aac89fd00b3d71497fddb287b7f24613712",
+    "bf16": true,
+    "speed": 1.0416666666666667,
+    "inference_mode": "sentence"
+  },
+  "preflight": {
+    "chapters_confirmed": false,
+    "voice_confirmed": false
+  },
+  "full_production_blocked_without_human_confirmation": true,
+  "scope": "Real preview plus separate export of automatically accepted segments; no human confirmation recorded",
+  "segments": [
+    {
+      "id": "c0001_s0001",
+      "text": "夜色渐深，窗外的风慢慢停了下来。他合上书，轻轻关上了台灯。",
+      "state": "passed",
+      "check": {
+        "passed": true,
+        "cer": 0.0,
+        "recognized": "夜色渐深，窗外的风慢慢停了下来，他合上书，轻轻关上了台灯。",
+        "reasons": [],
+        "differences": [],
+        "duration": 7.233015873015873,
+        "rms_db": -15.507355076722561
+      },
+      "audio_sha256": "580ec652b8757b5c3050a193502651c04c341662f8edb94816150ffbc896d1a0"
+    }
+  ],
+  "exports_created": 1,
+  "exports": {
+    "c0001": {
+      "wav": "c0001.wav",
+      "mp3": "c0001.mp3",
+      "input_lufs": -14.66,
+      "target_lufs": -19.0,
+      "duration": 7.233015873015873,
+      "signature": "8f8a1c8ca43826e43cfef4ab902f2017333092fcd4ac72709e57db5cb59fcb5a",
+      "sha256": {
+        "wav": "65c1049b91be7625ebdec10cd2ddb11bb71457f284b71446f9aa4e8d514bf30d",
+        "mp3": "b9dacfaf107d0d54e000501e9ec13c9d62bf0cdd5ab68b0f35ffb9d4a16d00a8"
+      }
+    }
+  },
+  "preview_sha256": "580ec652b8757b5c3050a193502651c04c341662f8edb94816150ffbc896d1a0",
+  "human_listening_performed": false
+}

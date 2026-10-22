@@ -1,0 +1,2 @@
+# Compatibility entrypoint; maintain the pinned versions in requirements/asr.txt.
+-r requirements/asr.txt

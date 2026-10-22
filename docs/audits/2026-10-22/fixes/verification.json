@@ -1,0 +1,24 @@
+{
+  "checked_at_utc": "2026-10-22T11:28:21+00:00",
+  "fixed_findings": 5,
+  "regression_tests_passed": 21,
+  "regression_failures": 0,
+  "real_model_loads_passed": [
+    "TTS",
+    "ASR/VAD"
+  ],
+  "smoke_segments_passed": 2,
+  "smoke_cer": [
+    0.0,
+    0.0
+  ],
+  "smoke_export_duration_seconds": 16.301950113378684,
+  "smoke_wav_mp3_hashes_verified": true,
+  "chapter_gap_ms": 1000,
+  "inference_gap_ms": 140,
+  "audio_reused_after_gap_change": true,
+  "existing_book_state_unchanged": true,
+  "report_links_verified": 22,
+  "report_sha256": "f8b0434d5e58b9e0777f3c82e730844c67a2e9d1971938976f41c15b65e684d0",
+  "changes_patch_sha256": "3ce6e16f6c0d96981b3f3d0c9154cd1966604da8dfd424706b25d815659585ea"
+}

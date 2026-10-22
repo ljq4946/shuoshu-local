@@ -1,0 +1,118 @@
+{
+  "checked_at_utc": "2026-10-22T10:57:23+00:00",
+  "root": "D:\\work\\demo\\说书人",
+  "python_syntax_files": 22,
+  "python_syntax": "passed",
+  "tests_directory_present": false,
+  "validation_directory_present": false,
+  "git_repository_present": false,
+  "source_sha256": {
+    "scripts\\bootstrap\\prepare_models.py": "bd146b5d4fada0741f9e87d27a926af35a46a9e459943e7668ebb9ec3443c6e0",
+    "scripts\\bootstrap\\prepare_torch.py": "9b14e3cb168aace758e00213785baf9ce0c84db28f9cc9da182a5e19cde45270",
+    "scripts\\bootstrap\\ranged_download.py": "cf380b54fde80feb124e6c4f06afc10aec685c5509e38a42b003534794be0c8f",
+    "storyteller\\__init__.py": "30f9b478d4ef948e8890163d2d4a8b3c82fdc5863f56b35925b86cac982635ae",
+    "storyteller\\__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "storyteller\\audio.py": "62f1a8d21248ef015b6313422bfba363c2220248a65b417d2519f146dda14ae1",
+    "storyteller\\cli.py": "c5b6d0ab3a78b59e5216e4a422074ed1f667bb65a8c7696940c56047004aeb03",
+    "storyteller\\compat.py": "c509c57b58dce1acf3061e0baf333bc84274e382485f479a62c5e757002e12e7",
+    "storyteller\\config.py": "83499dc3e88c8efdda35593d3209234743bb08c9f1d641ef3ef0720761841959",
+    "storyteller\\finetune.py": "19e2a36587a5b57e6a9dc59906fc72e7f4fdba12e6705dc9e01900759b326269",
+    "storyteller\\lora.py": "fee8c0da9d457011e2b1a6f398e00c0a4b036f3d1b007c1deec0798bc46ef9de",
+    "storyteller\\pipeline.py": "ead1063e4680c552e56971d8c15be3979a0ddf427576c0336ea6ea834ff193bc",
+    "storyteller\\preparation.py": "dcdeed30b36f30c8ee1b7a2b5b9da72d809dc2a1a5ce6a8a64c0b97de4775d6a",
+    "storyteller\\project.py": "80dd543863faf73857fc63d08811053e755740ff789096ff6d057abac0bfc5b7",
+    "storyteller\\quality.py": "72c476ed4814a2f00cb2c7988bb05c7490e51343902f6fd1c309278f6078310b",
+    "storyteller\\report.py": "e5cfdd4aa7d902188d11fa202e04fff493e5b775d3455a7c1ae690d119b32ff8",
+    "storyteller\\runtime.py": "166140105a5c617091f5a07bc8c2aec4796411ee36804b431c0401ccc40fb59d",
+    "storyteller\\storage.py": "ac46d29df5ea9efdc718f4b2a07c59ef88eb7d9453927a6dd2df2223aaf302b6",
+    "storyteller\\studio.py": "f1806b390bb7624379fff8e776c7db9a6045c629e6ddf13625ad51965f675281",
+    "storyteller\\text.py": "2c8876e54eb0857e4c747d81b925f7c8a65c0d900bdc6ee5f97471603aabcb1d",
+    "storyteller\\training_data.py": "5e5d0dc194af4564e1917cd105e86d4a05fc6cded9457be6224cdda94c5bab6f",
+    "storyteller\\worker.py": "649ccaf92bfd76cb5f4c599997e54223ff2fb5f8187b03958a3584e844557fdc",
+    "storyteller\\static\\studio.html": "387424936bdf0057f6e8411cdc3dec52d33fb4000b6760cad40d1ed8bc4e2d34",
+    "run.ps1": "de81d34132cec0f3579db55eb332f81d45df8ede8dc14d270398df9601f119b4",
+    "setup.ps1": "928569aab6c2cc1b02771d73c129dd84d7d70dec17ce3dfadf006a56712e005e",
+    "start.ps1": "48c69cfbfc8c4364e57ca05492c0b5f9a71e498617f0e8835753ade5690f2bd9",
+    "train_voice.ps1": "2a5f1a399079b81f60ef14618f1f838a3edf2f33b3ca5d6298b87c8de58aa83e",
+    "scripts\\Common.ps1": "8f6325ade74883c38db96f0011670c9a812c1ddd932aa4b965bcc98140bb483b",
+    "scripts\\Run-Storyteller.ps1": "b5e40a513928745a49aa1c58b4be2a9f158d68eb19c5c2d40066226c029b039a",
+    "scripts\\Setup-Environment.ps1": "a40fa06b27ab00fc0cf4e6c422c8368b75868965ee9191acbfc21e2ce816744c",
+    "scripts\\Start-Studio.ps1": "53f0d9b835933f32be7a31c9c6520d1b1f27d193d396366f0a1b6e45ccf3fa5e",
+    "scripts\\Train-Voice.ps1": "c4b1fcde0de5208d8ce4096cddf6c4990800648f746068ba8f42609d412b9fd4",
+    "config.local.json": "f4773cb3bab5587321791b299bc87ddf6b15e53373bf65aa920f8cf7b5be2ea8",
+    "pyproject.toml": "8dc7611c996535aba7fce65f469411f7ddc85d911de1afec3354d9198ad9467d",
+    "README.md": "061341e03b6c57ed2505e59949b1358437a67a7e34e71a21c89e96c2fadc3237"
+  },
+  "production_adapter": "",
+  "books": [
+    {
+      "path": "D:\\work\\demo\\说书人\\books\\十年非梦_春日野穹",
+      "project_sha256": "75c7ae44ed93340fddb3616c6a3bc34fcbf5e9f5b87006ca1834320bdaecabc3",
+      "chapters": 85,
+      "segments": 2939,
+      "states": {
+        "review": 22,
+        "passed": 24,
+        "pending": 2892,
+        "pause": 1
+      },
+      "pipeline_exports": 0,
+      "segments_referencing_audio": 46,
+      "segment_audio_hashes_checked": 46,
+      "segment_audio_hash_errors": [],
+      "input_hash_errors": [],
+      "profile": {
+        "engine": "IndexTTS-2.5",
+        "revision": "d9e41aac89fd00b3d71497fddb287b7f24613712",
+        "bf16": true,
+        "speed": 1.0416666666666667,
+        "inference_mode": "sentence"
+      },
+      "book_adapter": "",
+      "listening_record_exists": false,
+      "separate_audio_package": {
+        "expected_tracks": 85,
+        "published_tracks": 4,
+        "duration_seconds": 485.9894331065759,
+        "review_flagged_segments": 19,
+        "file_hashes_checked": 8,
+        "hash_errors": [],
+        "manifest_sha256": "14c8229c7622f10b207c077ff5fa3adce2116f35e89ee2adfc6575f50bd44d36"
+      }
+    }
+  ],
+  "training": {
+    "source_check": {
+      "labels_unchanged": true,
+      "audio_files_verified": 1614,
+      "audio_unchanged": true
+    },
+    "splits": {
+      "train": 1072,
+      "validation": 60,
+      "test": 61
+    },
+    "split_manifest_hash_errors": [],
+    "cross_split_exact_leaks": [],
+    "feature_files_checked": 1193,
+    "feature_hash_errors": [],
+    "best_checkpoint_hash_error": null,
+    "summary_status": "complete",
+    "human_listening": "pending",
+    "chinese_improvement": "not_established_by_japanese_code_loss"
+  },
+  "model_manifests": {
+    "index_model": {
+      "manifest_sha256": "00622440b2aa904b55d0dce99ab93fd4f02f9da4eadba1d38c6151c7212c2173",
+      "listed_files": 16
+    },
+    "asr_model": {
+      "manifest_sha256": "5a63dcefceb94e48960043482960df926a9609fa005c1dda9aa5dd93b116de36",
+      "listed_files": 19
+    },
+    "asr_vad_model": {
+      "manifest_sha256": "9c373bd6dd48ab8e8d4f1a12971548bb6f19f003dbbdf1d751fc4fb818801d21",
+      "listed_files": 5
+    }
+  }
+}

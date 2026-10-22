@@ -1,0 +1,30 @@
+# Python-generated files
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.test-output/
+
+# Local environments, models and machine settings
+.tools/
+.runtime/
+config.local.json
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+
+# Source media, training datasets and generated books
+01_语音/
+02_标注/
+books/
+training/*/
+
+# Generated audit projects contain copied reference recordings and audio outputs
+docs/audits/**/model-smoke/
+
+# Keep the archive index, but not local recovery snapshots
+archive/*
+!archive/README.md

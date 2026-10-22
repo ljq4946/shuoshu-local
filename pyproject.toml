@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shuoshu-local"
+version = "0.2.0"
+description = "Offline Chinese audiobook production with resumable voice cloning and local QA"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+shuoshu = "storyteller.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["storyteller*"]
+
+[tool.setuptools.package-data]
+storyteller = ["static/*.html"]

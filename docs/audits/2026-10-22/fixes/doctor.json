@@ -1,0 +1,16 @@
+{
+  "command": [
+    "D:\\work\\demo\\说书人\\.runtime\\core\\Scripts\\python.exe",
+    "-B",
+    "-X",
+    "utf8",
+    "-m",
+    "storyteller",
+    "doctor",
+    "--verify-hashes",
+    "--load-models"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 54.591,
+  "output": "doctor.log"
+}

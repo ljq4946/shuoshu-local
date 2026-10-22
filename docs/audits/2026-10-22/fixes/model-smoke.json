@@ -1,0 +1,71 @@
+{
+  "checked_at_utc": "2026-10-22T11:23:54+00:00",
+  "passed": true,
+  "human_listening_performed": false,
+  "profile": {
+    "engine": "IndexTTS-2.5",
+    "revision": "d9e41aac89fd00b3d71497fddb287b7f24613712",
+    "bf16": true,
+    "speed": 1.0416666666666667,
+    "inference_mode": "sentence"
+  },
+  "inference_gap_ms": 140,
+  "export_gap_ms": 1000,
+  "all_cached_audio_reused_after_gap_change": true,
+  "synthesis_stage_requests": 1,
+  "requested_internal_gaps_ms": [
+    140
+  ],
+  "preflight": {
+    "chapters_confirmed": false,
+    "voice_confirmed": false
+  },
+  "full_production_blocked_without_human_confirmation": true,
+  "segments": [
+    {
+      "id": "c0001_s0001",
+      "text": "夜色渐深，窗外的风慢慢停了下来。他合上书，轻轻关上了台灯。",
+      "state": "passed",
+      "check": {
+        "passed": true,
+        "cer": 0.0,
+        "recognized": "夜色渐深，窗外的风慢慢停了下来，他合上书，轻轻关上了台灯。",
+        "reasons": [],
+        "differences": [],
+        "duration": 7.233015873015873,
+        "rms_db": -15.507355076722561
+      },
+      "audio_sha256": "580ec652b8757b5c3050a193502651c04c341662f8edb94816150ffbc896d1a0"
+    },
+    {
+      "id": "c0001_s0002",
+      "text": "现在温度零下五度，明天十二点三十分出发，步行三到五公里，再取总数的二分之一。",
+      "state": "passed",
+      "check": {
+        "passed": true,
+        "cer": 0.0,
+        "recognized": "现在温度零下5度，明天12点30分出发，步行3到5公里，再取总数的2分之1。",
+        "reasons": [],
+        "differences": [],
+        "duration": 8.068934240362811,
+        "rms_db": -15.269914697013435
+      },
+      "audio_sha256": "5ba259812153017b160a31b8aaa8f1ecf5d88e572160657e335113090dec7596"
+    }
+  ],
+  "exports": {
+    "c0001": {
+      "wav": "c0001.wav",
+      "mp3": "c0001.mp3",
+      "input_lufs": -14.66,
+      "target_lufs": -19.0,
+      "duration": 16.301950113378684,
+      "signature": "3ad38c4691d76a320db9e55681209450967f1b341964cb92afe1bff89600f14e",
+      "sha256": {
+        "wav": "b186ec214ff9964cecddbca790679f48c077cdf711e0208f050fb5ad0c6c3d7a",
+        "mp3": "f201624e514a16fed0a4f739cf96adf6e91ce940fb1a608b467c1b9bdb5a8be6"
+      }
+    }
+  },
+  "preview_sha256": "a5e7c4f682d71369ab434585899badf0ed3ead37f54e2ac48821a02f478f1b06"
+}

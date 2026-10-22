@@ -1,0 +1,34 @@
+{
+  "checked_at_utc": "2026-10-22T11:24:36+00:00",
+  "backup_files_verified": 24,
+  "changed_source_and_document_files": [
+    "config.example.json",
+    "docs/ARCHITECTURE.md",
+    "docs/MAINTENANCE.md",
+    "README.md",
+    "storyteller/config.py",
+    "storyteller/preparation.py",
+    "storyteller/project.py",
+    "storyteller/quality.py",
+    "storyteller/static/studio.html",
+    "storyteller/studio.py",
+    "storyteller/text.py",
+    "storyteller/worker.py"
+  ],
+  "python_syntax_files": 29,
+  "existing_book_project_unchanged": true,
+  "existing_book_input_hashes_verified": 2,
+  "existing_book_audio_hashes_verified": 46,
+  "existing_package_hashes_verified": 8,
+  "existing_chapters_preserved": 85,
+  "restored_internal_gap_ms": 140,
+  "saved_generation_profile_compatible": true,
+  "training_source_check": {
+    "labels_unchanged": true,
+    "audio_files_verified": 1614,
+    "audio_unchanged": true
+  },
+  "training_feature_hashes_verified": 1193,
+  "best_checkpoint_sha256_verified": true,
+  "production_adapter": ""
+}

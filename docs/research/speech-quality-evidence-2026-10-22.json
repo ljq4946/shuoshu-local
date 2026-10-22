@@ -1,0 +1,167 @@
+{
+  "date": "2026-10-22",
+  "timezone": "Asia/Shanghai",
+  "scope": "Current source inspection, CPU-only logic probes, official documentation research; no TTS generation, listening, training or model migration performed.",
+  "hardware": {
+    "name": "NVIDIA GeForce RTX 4070 Laptop GPU",
+    "total_memory_mib": 8188,
+    "used_memory_mib_at_query": 1523,
+    "source": "nvidia-smi --query-gpu=name,memory.total,memory.used --format=csv,noheader"
+  },
+  "active_config": {
+    "engine": "IndexTTS-2.5",
+    "adapter": "",
+    "bf16": true,
+    "max_chars": 180,
+    "speed": 1,
+    "gap_ms": 180,
+    "scene_gap_ms": 800,
+    "use_qwen_emo": false,
+    "use_emo_text": false,
+    "use_random": false
+  },
+  "probes": {
+    "example_chars": 69,
+    "outer_segments": [
+      "他在门口站了很久，直到远处的脚步声彻底消失，才终于伸手推开那扇沉重的木门。屋里没有灯，窗外的雨却忽然大了起来，把他刚才想说的话全部淹没了。"
+    ],
+    "low_vram_chunks": [
+      [
+        "他在门口站了很久，直到远处的脚步声彻底消失，才终于伸手推开那扇沉重的木门。",
+        "屋里没有灯，窗外的雨却忽然大了起来，把他刚才想说的话全部淹没了。"
+      ]
+    ],
+    "source_preserved": true,
+    "upstream_internal_gap_ms": 200,
+    "local_outer_gap_ms": 180,
+    "qa_probes": [
+      {
+        "expected": "-5度",
+        "recognized": "5度",
+        "passed": false,
+        "cer": 0.33333,
+        "reasons": [
+          "关键数值或正负号不一致",
+          "文字差异率 33.3%"
+        ],
+        "differences": [
+          {
+            "type": "delete",
+            "expected": "负",
+            "heard": ""
+          }
+        ],
+        "duration": 10,
+        "rms_db": -20
+      },
+      {
+        "expected": "12:30",
+        "recognized": "十二点三十分",
+        "passed": true,
+        "cer": 0,
+        "reasons": [],
+        "differences": [],
+        "duration": 10,
+        "rms_db": -20
+      },
+      {
+        "expected": "2026/10/21",
+        "recognized": "二零二六年十月二十一日",
+        "passed": true,
+        "cer": 0,
+        "reasons": [],
+        "differences": [],
+        "duration": 10,
+        "rms_db": -20
+      },
+      {
+        "expected": "他并不是来取钱的，他只是想在天黑以前弄清楚那封信究竟是谁寄来的。",
+        "recognized": "他并是来取钱的，他只是想在天黑以前弄清楚那封信究竟是谁寄来的。",
+        "passed": true,
+        "cer": 0.03333,
+        "reasons": [],
+        "differences": [
+          {
+            "type": "delete",
+            "expected": "不",
+            "heard": ""
+          }
+        ],
+        "duration": 10,
+        "rms_db": -20
+      }
+    ],
+    "books_project_count": 0
+  },
+  "training_report": {
+    "dataset": "training/qiong1_20261022",
+    "usable_rows": 1193,
+    "usable_hours": 1.1110051020408174,
+    "training_rows": 1072,
+    "validation_rows": 60,
+    "test_rows": 61,
+    "language": "JA",
+    "paired_chinese_speech": false,
+    "baseline_test_loss": 5.125114522874355,
+    "best_test_loss": 4.220515259769228,
+    "test_relative_reduction": 0.17650322916058359,
+    "human_listening": "pending",
+    "chinese_improvement": "not_established_by_japanese_code_loss"
+  },
+  "source_sha256": {
+    "config.local.json": "f4773cb3bab5587321791b299bc87ddf6b15e53373bf65aa920f8cf7b5be2ea8",
+    "storyteller/config.py": "399921d2de51838c9eb7ed59700224ba948ceb52b9eaa19bfa117d8f197361fc",
+    "storyteller/worker.py": "48b4a4c76fe2fd26d128e7f84e97f6b85035c043ea70341305fef486c2cfa168",
+    "storyteller/text.py": "2c8876e54eb0857e4c747d81b925f7c8a65c0d900bdc6ee5f97471603aabcb1d",
+    "storyteller/audio.py": "62f1a8d21248ef015b6313422bfba363c2220248a65b417d2519f146dda14ae1",
+    "storyteller/quality.py": "89be9821b6b853d2b7d1e39028dd6d446857a70cc3bd1c6681a83b2304eb8b48",
+    "storyteller/pipeline.py": "b1915e574326708d06eaabb2fda54591b659481f3bebabe967cc0c72d4611209",
+    ".runtime/index-tts/indextts/infer_v2_5.py": "5768789abe657b7e0fcdab7acb70ae28949c8e1a2f435a7dc759a78f77ebfb40",
+    "training/qiong1_20261022/dataset_report.json": "445feb2ad9fa30c938666fa39627e683f0d8e9e18bbda07ad79dc74b4ebf974a",
+    "training/qiong1_20261022/runs/lora_rank16/summary.json": "683da2eabab1d36fd353d7fcdb22153779ae3302c3bc65809492fbd370667895"
+  },
+  "official_sources": [
+    {
+      "title": "IndexTTS README",
+      "url": "https://github.com/index-tts/index-tts",
+      "readme_modified_date": "2026-09-29T16:06:39Z"
+    },
+    {
+      "title": "Qwen3-TTS README",
+      "url": "https://github.com/QwenLM/Qwen3-TTS",
+      "readme_modified_date": "2026-01-25T16:11:02Z"
+    },
+    {
+      "title": "CosyVoice README",
+      "url": "https://github.com/QwenAudio/CosyVoice",
+      "readme_modified_date": "2026-05-25T18:15:40Z"
+    },
+    {
+      "title": "CosyVoice usage examples",
+      "url": "https://github.com/QwenAudio/CosyVoice/blob/main/example.py"
+    },
+    {
+      "title": "VoxCPM2 README",
+      "url": "https://github.com/OpenBMB/VoxCPM"
+    },
+    {
+      "title": "VoxCPM installation",
+      "url": "https://voxcpm.readthedocs.io/en/latest/installation.html"
+    },
+    {
+      "title": "GPT-SoVITS version comparison including v5",
+      "url": "https://github.com/RVC-Boss/GPT-SoVITS/wiki/GPT%E2%80%90SoVITS%E2%80%90features(Latest%E2%80%90Including%E2%80%90v5)",
+      "page_modified_date": "2026-10-07"
+    },
+    {
+      "title": "Fish Speech installation requirements",
+      "url": "https://github.com/fishaudio/fish-speech/blob/main/docs/en/install.md"
+    }
+  ],
+  "limitations": [
+    "No existing book projects were present under books at inspection time.",
+    "Logic probes do not establish audible defects or improvement.",
+    "Alternative models have not been installed or benchmarked on this GPU.",
+    "Historical defaults were not treated as current configuration."
+  ]
+}

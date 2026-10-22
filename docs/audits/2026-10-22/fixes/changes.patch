@@ -1,0 +1,852 @@
+--- a/config.example.json
++++ b/config.example.json
+@@ -3,6 +3,7 @@
+   "device": "cuda:0",
+   "bf16": true,
+   "speed": 1.0,
++  "inference_gap_ms": null,
+   "max_chars": 180,
+   "max_retries": 2,
+   "gap_ms": 180,
+--- a/docs/ARCHITECTURE.md
++++ b/docs/ARCHITECTURE.md
+@@ -170,6 +170,8 @@
+ 
+ 新书的配置读取顺序为代码 `DEFAULTS` 加本机 `config.local.json`，或显式传入的配置文件。嵌套设置按键合并，未知项会拒绝。
+ 
++`inference_gap_ms` 是固定的片段内部生成停顿，与可修改的章节拼接停顿 `gap_ms` 分开保存。旧 `sentence` 书籍从保存的初始停顿恢复该值；旧 `legacy` 书籍沿用 200 毫秒。续跑校验内部停顿，界面调整普通段间停顿只使章节导出失效，不改变片段音频或试读声音。`qa.critical_terms` 与正文采用相同规范化；校对版本升级会让机器通过片段重新进入识别阶段。
++
+ 已有书籍读取当前机器的运行时路径，再恢复 `project.json` 中保存的书籍设置；显式 `--config` 中列出的书籍项可进一步覆盖。模型版本、精度、语速及启用的适配器内容形成生成档案，续跑时核对一致性。
+ 
+ 当前原模型路径：
+--- a/docs/MAINTENANCE.md
++++ b/docs/MAINTENANCE.md
+@@ -21,6 +21,9 @@
+ .\run.ps1 --help
+ .\run.ps1 doctor
+ 
++# 核心回归：数值校对、关键字、生成停顿、面板会话、分章和续跑。
++& '.\.runtime\core\Scripts\python.exe' -B -X utf8 -m unittest discover -s tests -v
++
+ # 源码语法检查。
+ & '.\.runtime\core\Scripts\python.exe' -m compileall -q storyteller scripts/bootstrap
+ 
+@@ -37,6 +40,8 @@
+ 该命令会实际读取模型并加载到显卡。涉及生成质量的改动还需要指定文本和参考声音的实测、复听；本次目录整理的验证不替代这些检查。
+ 
+ PowerShell 脚本使用带 BOM 的 UTF-8，兼容 Windows PowerShell 5.1。新增工作流使用 `scripts/Common.ps1` 的项目根目录定位和编码初始化，保持根目录入口的参数行为。
++
++2026-10-22 审查后的修复与验证记录见 [五项问题修复记录](audits/2026-10-22/FIXES.md)。`tests/` 使用标准库 unittest，模型阶段采用可控工作进程模拟；音频导出与 HTTP 会话测试使用本地 FFmpeg 和回环服务，不加载 GPU 模型。真实模型检查和样例生成另行记录。
+ 
+ ## 2026-10-22 整理记录
+ 
+--- a/README.md
++++ b/README.md
+@@ -70,6 +70,8 @@
+ 
+ 自动分章不适合书稿时，可以在面板调整，或导入时增加 `--chapter-pattern '章节标题的整行正则'`。从参考录音第 5 秒开始截取，可在 `init` 中增加 `--reference-start 5`。
+ 
++自动分章支持“第一章雨夜”“第一卷风起”等紧连标题。“回、节、部、集、篇”后须有空格、冒号等标题分隔，避免把“第一回见面时……”等正文分成新章。无分隔的章回体标题可用自定义规则，例如 `--chapter-pattern '第[一二三四五六七八九十百零〇两0-9]+回.*'`，或在面板指定起始行。
++
+ 人名、地名、多音字读错时，在面板编辑读音词典，或修改书籍目录里的 `pronunciations.json`：
+ 
+ ```json
+@@ -93,6 +95,7 @@
+ | `speed` | `1.0`；范围 0.5–2.0，大于 1 放慢，小于 1 加快 |
+ | `max_chars` | 每段约 180 字；数字、词条和发音标注可能使片段略长 |
+ | `gap_ms` | 普通片段间停顿 180 毫秒 |
++| `inference_gap_ms` | 片段内部生成停顿，导入时随书固定；默认自动沿用 `sentence` 模式的初始 `gap_ms`，`legacy` 模式为 200 毫秒。新书可显式设为 0–3000；`null` 表示自动 |
+ | `scene_gap_ms` | 场景停顿 800 毫秒，替代该处普通停顿 |
+ | `max_retries` | 固定为 2，即每段最多自动合成 3 次 |
+ | `stage_timeout_seconds` | 无进度超时 7200 秒，有持续进度的长任务可继续 |
+@@ -105,7 +108,9 @@
+ .\run.ps1 --config '.\config.local.json' status '.\books\我的有声书'
+ ```
+ 
+-正式制作后，参考声音、模型、精度和语速保持固定；更换这些设置请新建书籍项目。停顿、导出设置及读音词典可以在面板调整，受影响的旧成品会归档，再按需重新导出或合成。
++正式制作后，参考声音、模型、精度和语速保持固定；片段内部生成停顿从导入起固定。更换这些固定的生成设置请新建书籍项目。界面中的普通段间停顿、场景停顿及导出设置只影响拼接与导出，可以继续复用有效语音。读音词典也可以调整，受影响的旧成品会归档，再按需重新导出或合成。
++
++校对会区分数字范围、分数、数字列表及正负号，并兼容“三到五”“二分之一”等等价读法。可通过 `qa.critical_terms` 配置重点核对的词语；大小写、全角字符和中文数字会按正文的相同规则处理。规范化后为空或重复的关键字配置会报错。校对规则升级后，续跑会重新校对旧的机器通过片段，复用已有语音；人工确认的片段保留原确认。
+ 
+ ## 5. 文件与成品
+ 
+--- a/storyteller/config.py
++++ b/storyteller/config.py
+@@ -6,6 +6,7 @@
+ import shutil
+ from pathlib import Path
+ 
++from .quality import normalized_critical_terms
+ from .storage import digest, read_json
+ 
+ ROOT = Path(__file__).resolve().parents[1]
+@@ -23,6 +24,7 @@
+     "bf16": True,
+     "speed": 1.0,
+     "inference_mode": "legacy",
++    "inference_gap_ms": None,
+     "max_chars": 180,
+     "max_retries": 2,
+     "stage_timeout_seconds": 7200,
+@@ -32,7 +34,7 @@
+            "critical_terms": []},
+     "export": {"lufs": -19.0, "true_peak": -1.5, "lra": 11.0, "mp3_bitrate": "128k"},
+ }
+-BOOK_SETTINGS = ("bf16", "speed", "inference_mode", "max_chars", "max_retries", "stage_timeout_seconds",
++BOOK_SETTINGS = ("bf16", "speed", "inference_mode", "inference_gap_ms", "max_chars", "max_retries", "stage_timeout_seconds",
+                  "gap_ms", "scene_gap_ms", "qa", "export", "tts_adapter")
+ 
+ 
+@@ -68,6 +70,7 @@
+     elif not Path(cfg["ffmpeg"]).is_absolute():
+         cfg["ffmpeg"] = str((ROOT / cfg["ffmpeg"]).resolve())
+     validate_config(cfg)
++    cfg["inference_gap_ms"] = inference_gap(cfg)
+     return cfg
+ 
+ 
+@@ -81,6 +84,9 @@
+         raise ValueError("speed 必须在 0.5–2.0 之间（大于 1 表示放慢）。")
+     if cfg.get("inference_mode", "legacy") not in {"legacy", "sentence"}:
+         raise ValueError("inference_mode 必须是 legacy 或 sentence。")
++    internal_gap = cfg.get("inference_gap_ms")
++    if internal_gap is not None and (type(internal_gap) is not int or not 0 <= internal_gap <= 3000):
++        raise ValueError("inference_gap_ms 必须为空或 0–3000 的整数。")
+     if type(cfg["max_chars"]) is not int or not 20 <= cfg["max_chars"] <= 500:
+         raise ValueError("max_chars 必须为 20–500 的整数。")
+     if type(cfg["max_retries"]) is not int or cfg["max_retries"] != 2:
+@@ -89,6 +95,7 @@
+     if (not isinstance(qa.get("critical_terms", []), list)
+             or any(not isinstance(term, str) or not term for term in qa.get("critical_terms", []))):
+         raise ValueError("qa.critical_terms 必须是非空关键字组成的列表。")
++    normalized_critical_terms(qa.get("critical_terms", []))
+     if (not numeric(qa["max_cer"]) or not 0 <= qa["max_cer"] <= 1
+             or type(qa["max_gap"]) is not int or qa["max_gap"] < 1
+             or not numeric(qa["min_chars_per_second"]) or not numeric(qa["max_chars_per_second"])
+@@ -100,8 +107,23 @@
+         raise ValueError("无效的段间停顿或阶段超时。")
+ 
+ 
++def inference_gap(cfg: dict) -> int:
++    gap = cfg.get("inference_gap_ms")
++    if gap is None:
++        return cfg.get("gap_ms", DEFAULTS["gap_ms"]) if cfg.get("inference_mode", "legacy") == "sentence" else 200
++    return gap
++
++
++def book_inference_gap(project: dict) -> int:
++    # Old sentence books used their saved gap; legacy inference used 200 ms.
++    saved = {**project.get("book_config", {}), "inference_mode": project["profile"].get("inference_mode", "legacy")}
++    return inference_gap(saved)
++
++
+ def book_settings(cfg: dict) -> dict:
+-    return {key: copy.deepcopy(cfg[key]) for key in BOOK_SETTINGS}
++    result = {key: copy.deepcopy(cfg[key]) for key in BOOK_SETTINGS}
++    result["inference_gap_ms"] = inference_gap(cfg)
++    return result
+ 
+ 
+ def load_book_config(root: Path, path: Path | None = None) -> dict:
+@@ -114,14 +136,18 @@
+     for key in BOOK_SETTINGS:
+         if key in saved:
+             cfg[key] = copy.deepcopy(saved[key])
++    cfg["inference_gap_ms"] = book_inference_gap(project)
+     if path is not None:
+         for key, value in read_json(path).items():
+             if key in BOOK_SETTINGS:
++                if key == "inference_gap_ms" and value is None:
++                    continue  # Auto on an existing book means its frozen value.
+                 if isinstance(cfg[key], dict):
+                     cfg[key].update(value)
+                 else:
+                     cfg[key] = value
+     validate_config(cfg)
++    cfg["inference_gap_ms"] = inference_gap(cfg)
+     return cfg
+ 
+ 
+--- a/storyteller/preparation.py
++++ b/storyteller/preparation.py
+@@ -164,11 +164,14 @@
+ 
+ 
+ def update_settings(root: Path, cfg: dict, settings: dict) -> dict:
+-    from .config import book_settings, generation_profile, validate_config
++    from .config import book_inference_gap, book_settings, generation_profile, inference_gap, validate_config
+     permitted = {"speed", "gap_ms", "scene_gap_ms", "mp3_bitrate"}
+     if not isinstance(settings, dict) or set(settings) - permitted:
+         raise ValueError("无效的制作设置。")
+     candidate = copy.deepcopy(cfg)
++    # The UI edits only chapter joins. Freeze the synthesis gap before applying
++    # the new join value, including callers holding a pre-import default config.
++    candidate["inference_gap_ms"] = inference_gap(cfg)
+     for key, value in settings.items():
+         if key == "mp3_bitrate":
+             if value not in {"64k", "96k", "128k", "192k", "256k", "320k"}:
+@@ -179,6 +182,8 @@
+     validate_config(candidate)
+     with FileLock(root / ".project.lock"):
+         project = load(root)
++        if candidate["inference_gap_ms"] != book_inference_gap(project):
++            raise ValueError("片段内部生成停顿已改变。请恢复 inference_gap_ms 或新建项目，避免续跑时混用不同停顿。")
+         if candidate["speed"] != project["profile"]["speed"]:
+             if project["exports"] or any(r.get("mode") != "preview" for r in project["runs"]):
+                 raise ValueError("已开始全书制作，语速已固定。调整语速请新建项目。")
+--- a/storyteller/project.py
++++ b/storyteller/project.py
+@@ -7,7 +7,7 @@
+ from pathlib import Path
+ 
+ from .audio import prepare_reference, wav_info
+-from .config import book_settings, generation_profile
++from .config import book_inference_gap, book_settings, generation_profile, inference_gap
+ from .quality import QA_VERSION
+ from .storage import contained, digest, file_hash, now, read_json, write_json
+ from .text import (align_segment_boundaries, apply_pronunciations, read_book,
+@@ -137,6 +137,8 @@
+ def refresh(root: Path, project: dict, cfg: dict) -> int:
+     if project["profile"] != generation_profile(cfg):
+         raise ValueError("声音模型、精度或语速已改变。为保持全书一致，请恢复配置或新建项目。")
++    if inference_gap(cfg) != book_inference_gap(project):
++        raise ValueError("片段内部生成停顿已改变。请恢复 inference_gap_ms 或新建项目，避免续跑时混用不同停顿。")
+     if file_hash(root / "input/reference.wav") != project["reference_sha256"]:
+         raise ValueError("参考录音已改变。请恢复原文件或新建项目，避免续跑时更换音色。")
+     if file_hash(root / "input/source.txt") != project["source_sha256"]:
+--- a/storyteller/quality.py
++++ b/storyteller/quality.py
+@@ -5,7 +5,7 @@
+ import unicodedata
+ from datetime import date
+ 
+-QA_VERSION = 2
++QA_VERSION = 3
+ 
+ DIGITS = dict(zip("零〇一二三四五六七八九", [0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]))
+ DIGITS["两"] = 2
+@@ -67,7 +67,43 @@
+     value = re.sub(r"(?:零下|负|(?<![\d])[-−])(?=\d)", "负", value)
+     value = re.sub(r"(?:正|(?<![\d])\+)(?=\d)", "", value)
+     value = re.sub(r"负百分之(\d+(?:点\d+)?)", r"百分之负\1", value)
+-    return "".join(c for c in value if c.isalnum())
++    # Keep numeric relationships before dropping punctuation. Otherwise a
++    # range/list/fraction can collapse into a completely different integer.
++    atom = r"(?:百分之)?负?\d+(?:点\d+)?"
++    def fraction(match):
++        numerator, denominator = match[1], match[2]
++        return denominator + "分之" + numerator
++    value = re.sub(rf"({atom})\s*[/⁄∕]\s*({atom})", fraction, value)
++    def signed_fraction(match):
++        denominator, numerator = match[1], match[2]
++        negative = denominator.startswith("负") != numerator.startswith("负")
++        return denominator.removeprefix("负") + "分之" + ("负" if negative else "") + numerator.removeprefix("负")
++    value = re.sub(rf"({atom})分之({atom})", signed_fraction, value)
++    value = re.sub(rf"({atom})\s*(?:[-−–—~]|至|到)\s*(?={atom})", r"\1至", value)
++    # Other separators between numbers are significant even when their exact
++    # meaning is uncertain. A list marker prevents silent concatenation.
++    value = re.sub(r"(?<=\d)[\W_]+(?=(?:百分之)?负?\d)", "\ue001", value)
++    return "".join(c for c in value if c.isalnum() or c == "\ue001").replace("\ue001", "、")
++
++
++def numeric_expressions(text: str) -> list[str]:
++    atom = r"(?:百分之)?负?\d+(?:点\d+)?"
++    fraction = rf"(?:{atom}分之{atom}|{atom})"
++    interval = rf"{fraction}(?:至{fraction})?"
++    return re.findall(rf"{interval}(?:、{interval})*", text)
++
++
++def normalized_critical_terms(terms: list[str]) -> list[tuple[str, str]]:
++    result, seen = [], {}
++    for term in terms:
++        normalized = normalize(term)
++        if not normalized:
++            raise ValueError(f"关键字规范化后为空：{term!r}")
++        if normalized in seen:
++            raise ValueError(f"关键字规范化后重复：{seen[normalized]!r}、{term!r}")
++        seen[normalized] = term
++        result.append((term, normalized))
++    return result
+ 
+ 
+ def edit_distance(a: str, b: str) -> int:
+@@ -91,11 +127,11 @@
+         if tag in ("delete", "insert"):
+             longest_gap = max(longest_gap, j-i, l-k)
+     reasons = []
+-    # One wrong sign or digit is material even when diluted by a long sentence.
+-    numbers = lambda text: re.findall(r"(?:百分之)?负?\d+(?:点\d+)?", text)
+-    if numbers(a) != numbers(b):
++    # A changed relationship, sign or digit is material even in a long sentence.
++    if numeric_expressions(a) != numeric_expressions(b):
+         reasons.append("关键数值或正负号不一致")
+-    critical_differences = [term for term in cfg.get("critical_terms", []) if a.count(term) != b.count(term)]
++    critical_differences = [term for term, normalized in normalized_critical_terms(cfg.get("critical_terms", []))
++                            if a.count(normalized) != b.count(normalized)]
+     if critical_differences:
+         reasons.append("疑似关键字差异：" + "、".join(critical_differences))
+     if not b:
+--- a/storyteller/static/studio.html
++++ b/storyteller/static/studio.html
+@@ -25,7 +25,7 @@
+ </div>
+ <div class="grid">
+ <section aria-labelledby="rulesTitle"><h2 id="rulesTitle">读音词典</h2><p class="muted">为人名、地名和多音字标注读音。保存后只重新制作受影响的片段。</p><div id="rules"></div><div class="row"><button id="addRule" class="small" data-idle>添加词条</button><button id="saveRules" class="primary" data-idle>保存读音</button></div><small>例如：重庆 → &lt;重|CHONG2&gt;庆。标注保留原字。</small></section>
+-<section class="settings" aria-labelledby="settingsTitle"><h2 id="settingsTitle">本书设置</h2><label>语速系数 <input id="speed" type="number" min="0.5" max="2" step="0.05"></label><small>大于 1 表示放慢。开始全书后固定；试读阶段可调整。</small><label>普通段间停顿（毫秒）<input id="gap" type="number" min="0" max="3000" step="10"></label><label>场景分隔停顿（毫秒）<input id="sceneGap" type="number" min="0" max="10000" step="50"></label><label>MP3 码率<select id="bitrate"><option>64k</option><option>96k</option><option>128k</option><option>192k</option><option>256k</option><option>320k</option></select></label><button id="saveSettings" data-idle>保存设置</button><p class="muted">设置随书籍保存。调整停顿或码率后，点击继续制作重新导出，已通过的语音会复用。</p></section>
++<section class="settings" aria-labelledby="settingsTitle"><h2 id="settingsTitle">本书设置</h2><label>语速系数 <input id="speed" type="number" min="0.5" max="2" step="0.05"></label><small>大于 1 表示放慢。开始全书后固定；试读阶段可调整。</small><label>普通段间停顿（毫秒）<input id="gap" type="number" min="0" max="3000" step="10"></label><label>场景分隔停顿（毫秒）<input id="sceneGap" type="number" min="0" max="10000" step="50"></label><label>MP3 码率<select id="bitrate"><option>64k</option><option>96k</option><option>128k</option><option>192k</option><option>256k</option><option>320k</option></select></label><button id="saveSettings" data-idle>保存设置</button><p class="muted">设置随书籍保存。普通段间停顿只调整片段之间的间隔，片段内部停顿随书固定。调整停顿或码率后，点击继续制作重新导出，已通过的语音会复用。</p></section>
+ </div>
+ <section aria-labelledby="reviewTitle"><div class="row between"><h2 id="reviewTitle">逐段复听与修正</h2><span id="filterCount" class="muted"></span></div><p class="muted">对照原文与识别结果。听完可疑音频后，确认通过或仅重做这一段。</p><div class="toolbar filters"><input id="search" aria-label="搜索片段" placeholder="搜索原文、识别结果或片段编号"><button id="onlyIssues" aria-pressed="false">只看异常</button></div><div id="segments"></div><div class="row between"><button id="prev">上一页</button><span id="page" class="muted"></span><button id="next">下一页</button></div></section>
+ <section aria-labelledby="outputTitle"><h2 id="outputTitle">章节成品</h2><p class="muted">整章全部通过机器校对或人工复听后，导出 WAV 母版与 MP3。场景分隔符作为停顿保留。</p><div id="outputs"></div></section>
+--- a/storyteller/studio.py
++++ b/storyteller/studio.py
+@@ -138,6 +138,9 @@
+     def __init__(self, studio: Studio, port=0):
+         self.studio = studio
+         super().__init__(("127.0.0.1", port), StudioHandler)
++        # Browser cookies are shared across ports on the same host. Each local
++        # server must read only its own cookie for media authentication.
++        self.cookie_name = f"shuoshu_{self.server_port}"
+         self.origin = f"http://127.0.0.1:{self.server_port}"
+         self.url = f"{self.origin}/session/{studio.token}/"
+ 
+@@ -177,7 +180,8 @@
+         if not token:
+             try:
+                 cookie = SimpleCookie(self.headers.get("Cookie", ""))
+-                token = cookie["shuoshu"].value if "shuoshu" in cookie else ""
++                name = self.server.cookie_name
++                token = cookie[name].value if name in cookie else ""
+             except Exception:
+                 return False
+         return hmac.compare_digest(token, self.server.studio.token)
+@@ -191,7 +195,7 @@
+         if path == f"/session/{studio.token}/" and self._trusted_host():
+             body = (Path(__file__).parent / "static/studio.html").read_text(encoding="utf-8").replace("__SESSION_TOKEN__", studio.token).encode("utf-8")
+             self._headers(200, "text/html; charset=utf-8", len(body),
+-                          Set_Cookie=f"shuoshu={studio.token}; HttpOnly; SameSite=Strict; Path=/")
++                          Set_Cookie=f"{self.server.cookie_name}={studio.token}; HttpOnly; SameSite=Strict; Path=/")
+             if self.command != "HEAD":
+                 self.wfile.write(body)
+             return
+--- a/storyteller/text.py
++++ b/storyteller/text.py
+@@ -4,7 +4,10 @@
+ from bisect import bisect_right
+ from pathlib import Path
+ 
+-HEADING = re.compile(r"^(?:第[零〇一二三四五六七八九十百千万两\d]+[章回卷节部集篇](?:\s|[：:、.．]|$|[^。，！？]).*|chapter\s+\d+.*|(?:序章|序言|楔子|引子|尾声|后记|终章)(?:\s.*|[：:].*|$))$", re.I)
++HEADING = re.compile(
++    r"^(?:第[零〇一二三四五六七八九十百千万两\d]+"
++    r"(?:[章卷].*|[回节部集篇](?:\s.*|[：:、.．].*|$))"
++    r"|chapter\s+\d+.*|(?:序章|序言|楔子|引子|尾声|后记|终章)(?:\s.*|[：:].*|$))$", re.I)
+ ANNOTATION = re.compile(r"<([^<>|]+)\|([^<>|]+)>")
+ NUMBER = re.compile(r"[+−-]?\d+(?:[.,，．:：/\-]\d+)*%?")
+ 
+@@ -16,9 +19,10 @@
+ def is_heading(line: str, pattern: str | None = None) -> bool:
+     if pattern is not None:
+         return bool(re.fullmatch(pattern, line))
+-    # Ordinary sentences with a chapter-like prefix are body text. Titles
+-    # without a space (第一章雨夜) remain supported.
+-    return (len(line) <= 80 and not re.search(r"[。，,！？!?；;]", line)
++    # 回/节/部/集/篇 also count ordinary events and objects, so require an
++    # explicit title boundary. Compact 章/卷 titles remain supported; unusual
++    # manuscript conventions can use an explicit pattern or source line list.
++    return (len(line) <= 80 and not re.search(r"[。，,！？!?；;…]|\.{2,}", line)
+             and bool(HEADING.fullmatch(line)))
+ 
+ 
+--- a/storyteller/worker.py
++++ b/storyteller/worker.py
+@@ -10,6 +10,7 @@
+ import traceback
+ from pathlib import Path
+ 
++from .config import inference_gap
+ from .runtime import PREFIX, block_network
+ from .storage import read_json
+ from .text import split_inference_text
+@@ -73,11 +74,12 @@
+     model.narration_chunks = []
+     options = dict(spk_audio_prompt=str(reference), text=text, lang="ZH", output_path=str(output),
+                    duration_factor=cfg["speed"], use_random=False, use_emo_text=False,
+-                   max_text_tokens_per_segment=120, verbose=False)
++                   max_text_tokens_per_segment=120, verbose=False,
++                   interval_silence=inference_gap(cfg))
+     if cfg.get("inference_mode", "legacy") == "sentence":
+         # Preserve sentence context instead of the upstream 40-character pass.
+         # Normalized tokenizer splitting remains enabled as a memory safeguard.
+-        for _ in model.infer_generator(**options, interval_silence=cfg["gap_ms"]):
++        for _ in model.infer_generator(**options):
+             pass
+     else:
+         model.infer(**options)
+--- /dev/null
++++ b/tests/__init__.py
+@@ -0,0 +1 @@
++"""Focused regressions for the audiobook production pipeline."""
+--- /dev/null
++++ b/tests/support.py
+@@ -0,0 +1,73 @@
++from __future__ import annotations
++
++import array
++import copy
++import math
++from pathlib import Path
++import sys
++import tempfile
++import unittest
++import wave
++
++from storyteller.config import DEFAULTS, ROOT, load_config
++from storyteller.project import create, load
++
++
++def tone(path: Path, seconds=4):
++    path.parent.mkdir(parents=True, exist_ok=True)
++    rate = 24000
++    samples = array.array("h", (int(4000 * math.sin(i * 2 * math.pi * 220 / rate)) for i in range(int(rate * seconds))))
++    if sys.byteorder != "little":
++        samples.byteswap()
++    with wave.open(str(path), "wb") as stream:
++        stream.setparams((1, 2, rate, 0, "NONE", "not compressed"))
++        stream.writeframes(samples.tobytes())
++
++
++class BookTestCase(unittest.TestCase):
++    def setUp(self):
++        parent = ROOT / ".test-output"
++        parent.mkdir(exist_ok=True)
++        self.temporary = tempfile.TemporaryDirectory(prefix="review-fixes-", dir=parent)
++        self.base = Path(self.temporary.name).resolve()
++        self.assertTrue(self.base.is_relative_to(parent.resolve()))
++        self.addCleanup(self.cleanup_fixture)
++        self.cfg = copy.deepcopy(DEFAULTS)
++        self.cfg["ffmpeg"] = load_config()["ffmpeg"]
++        if not self.cfg["ffmpeg"]:
++            self.skipTest("The local FFmpeg runtime is required")
++
++    def cleanup_fixture(self):
++        if not self.base.is_relative_to((ROOT / ".test-output").resolve()):
++            raise RuntimeError("Test cleanup path escapes the workspace")
++        self.temporary.cleanup()
++
++    def book(self, name="book", text="这是一段用于验证本地制作及断点续跑的工程测试文字。", cfg=None):
++        source, reference = self.base / (name + ".txt"), self.base / (name + ".wav")
++        source.write_text(text, encoding="utf-8")
++        tone(reference)
++        root = self.base / name
++        create(source, reference, root, cfg or self.cfg)
++        return root
++
++
++class Runner:
++    def __init__(self, *, forbid_synth=False, recognized=None, fail_check=False):
++        self.forbid_synth, self.recognized, self.fail_check = forbid_synth, recognized, fail_check
++        self.calls = []
++
++    def events(self, stage, root, jobs):
++        self.calls.append((stage, [job["id"] for job in jobs]))
++        if self.forbid_synth and stage == "synth":
++            raise AssertionError("Existing audio should have been reused")
++        texts = {s["id"]: s["text"] for s in load(root)["segments"]}
++        yield {"event": "ready"}
++        for job in jobs:
++            yield {"event": "started", "id": job["id"]}
++            if stage == "synth":
++                tone(Path(job["output"]), max(2, len(texts[job["id"]]) / 4))
++                yield {"event": "done", "id": job["id"]}
++            elif self.fail_check:
++                yield {"event": "error", "id": job["id"], "error": "controlled ASR failure"}
++            else:
++                yield {"event": "done", "id": job["id"], "recognized": self.recognized or texts[job["id"]]}
+--- /dev/null
++++ b/tests/test_chapters.py
+@@ -0,0 +1,38 @@
++from __future__ import annotations
++
++import re
++import unittest
++
++from storyteller.text import is_heading, split_chapters
++
++
++class ChapterDetectionTests(unittest.TestCase):
++    def test_chapter_like_body_lines_do_not_create_extra_chapters(self):
++        for body in ("第一回见面时……", "第一回见面时我们都还年轻", "第一回见面时...",
++                     "第一回见面时我们都还年轻。", "第一节课刚开始", "第二部电影还没看完",
++                     "第三篇文章读完了", "第二集节目刚开始"):
++            with self.subTest(body=body):
++                source = f"第一章 开始\n这是正文。\n{body}\n后来发生了很多事情。\n第二章 结束\n这是结尾。"
++                chapters = split_chapters(source, "样例")
++                self.assertEqual([c["title"] for c in chapters], ["第一章 开始", "第二章 结束"])
++                compact = lambda text: re.sub(r"\s+", "", text)
++                self.assertEqual(compact("".join(c["text"] for c in chapters)), compact(source))
++
++    def test_standard_and_compact_chapter_titles_are_preserved(self):
++        for title in ("第一章雨夜", "第一卷风起", "第十二章", "第12章：重逢", "第一回 初见",
++                      "第二回：重逢", "第三节 窗下", "第一部 起点", "第2集：雨夜", "第三篇 远行",
++                      "Chapter 1 Rain", "序章", "楔子：往事", "尾声", "后记"):
++            with self.subTest(title=title):
++                self.assertTrue(is_heading(title))
++                self.assertEqual(split_chapters(title + "\n这是一段正文。", "样例")[0]["title"], title)
++
++    def test_custom_pattern_preserves_compact_classical_chapter_titles(self):
++        source = "第一回甄士隐梦幻识通灵\n这是一段正文。\n第二回贾夫人仙逝扬州城\n这是另一段正文。"
++        chapters = split_chapters(source, "样例", pattern=r"第[一二三四五六七八九十]+回.*")
++        self.assertEqual([c["title"] for c in chapters], ["第一回甄士隐梦幻识通灵", "第二回贾夫人仙逝扬州城"])
++
++    def test_explicit_start_lines_override_automatic_ambiguity_checks(self):
++        source = "开篇文字。\n第一回初见\n第一回见面时……\n第二回再会\n结束。"
++        chapters = split_chapters(source, "样例", starts=[2, 4])
++        self.assertEqual([c["title"] for c in chapters], ["样例", "第一回初见", "第二回再会"])
++        self.assertIn("第一回见面时……", chapters[1]["text"])
+--- /dev/null
++++ b/tests/test_inference_gap.py
+@@ -0,0 +1,98 @@
++from __future__ import annotations
++
++import contextlib
++import copy
++import io
++
++from storyteller.config import DEFAULTS, generation_profile, load_book_config, validate_config
++from storyteller.pipeline import run
++from storyteller.preparation import confirm, preview, update_settings
++from storyteller.project import load, refresh, save
++from storyteller.storage import file_hash, write_json
++from storyteller.worker import synthesize
++from tests.support import BookTestCase, Runner
++
++
++class Recorder:
++    def __init__(self):
++        self.options = []
++
++    def infer_generator(self, **options):
++        self.options.append(options)
++        yield None
++
++    def infer(self, **options):
++        self.options.append(options)
++
++
++class InferenceGapTests(BookTestCase):
++    def test_export_gap_changes_leave_synthesis_and_preview_unchanged(self):
++        cfg = copy.deepcopy(self.cfg)
++        cfg.update(inference_mode="sentence", gap_ms=140)
++        root = self.book(cfg=cfg)
++        with contextlib.redirect_stdout(io.StringIO()):
++            preview(root, cfg, Runner(), False)
++        confirm(root, chapters=True, voice=True, note="test fixture")
++        before = load(root)
++        cfg = load_book_config(root)
++        changed = update_settings(root, cfg, {"gap_ms": 1000})
++        self.assertEqual(changed["inference_gap_ms"], 140)
++        self.assertEqual(generation_profile(changed), generation_profile(cfg))
++        with contextlib.redirect_stdout(io.StringIO()):
++            runner = Runner(forbid_synth=True)
++            run(root, changed, runner, False)
++        after = load(root)
++        self.assertEqual(runner.calls, [])
++        self.assertEqual(before["segments"][0]["audio_sha256"], after["segments"][0]["audio_sha256"])
++        self.assertEqual(before["preflight"], after["preflight"])
++        reloaded = load_book_config(root)
++        self.assertEqual((reloaded["gap_ms"], reloaded["inference_gap_ms"]), (1000, 140))
++        model = Recorder()
++        for settings in (cfg, changed, reloaded):
++            synthesize(model, settings, root / "input/reference.wav", "旧片段和重做片段保持相同内部停顿。", self.base / "unused.wav")
++        self.assertEqual([x["interval_silence"] for x in model.options], [140, 140, 140])
++
++    def test_old_book_restores_its_original_internal_gap_before_config_overrides(self):
++        for mode, expected in (("sentence", 140), ("legacy", 200)):
++            with self.subTest(mode=mode):
++                cfg = copy.deepcopy(self.cfg)
++                cfg.update(inference_mode=mode, gap_ms=140)
++                root = self.book(name=mode, cfg=cfg)
++                project = load(root)
++                project["book_config"].pop("inference_gap_ms")
++                save(root, project)
++                config = self.base / (mode + "-config.json")
++                write_json(config, {"gap_ms": 1000, "inference_gap_ms": None})
++                loaded = load_book_config(root, config)
++                self.assertEqual(loaded["inference_gap_ms"], expected)
++                self.assertEqual(loaded["gap_ms"], 1000)
++                refresh(root, load(root), loaded)
++                self.assertEqual(load(root)["book_config"]["inference_gap_ms"], expected)
++
++    def test_internal_gap_change_is_rejected_without_modifying_existing_book(self):
++        cfg = copy.deepcopy(self.cfg)
++        cfg.update(inference_mode="sentence", gap_ms=140, inference_gap_ms=140)
++        root = self.book(cfg=cfg)
++        original = file_hash(root / "project.json")
++        changed = copy.deepcopy(cfg)
++        changed["inference_gap_ms"] = 300
++        with self.assertRaisesRegex(ValueError, "内部生成停顿已改变"):
++            refresh(root, load(root), changed)
++        with self.assertRaisesRegex(ValueError, "内部生成停顿已改变"):
++            update_settings(root, changed, {"gap_ms": 1000})
++        self.assertEqual(file_hash(root / "project.json"), original)
++
++    def test_legacy_worker_preserves_its_default_200ms_internal_gap(self):
++        model = Recorder()
++        cfg = copy.deepcopy(DEFAULTS)
++        cfg["gap_ms"] = 1000
++        synthesize(model, cfg, self.base / "ref.wav", "工程样例", self.base / "unused.wav")
++        self.assertEqual(model.options[0]["interval_silence"], 200)
++
++    def test_invalid_internal_gap_is_rejected(self):
++        for gap in (-1, 3001, True, 1.5):
++            with self.subTest(gap=gap):
++                cfg = copy.deepcopy(DEFAULTS)
++                cfg["inference_gap_ms"] = gap
++                with self.assertRaisesRegex(ValueError, "inference_gap_ms"):
++                    validate_config(cfg)
+--- /dev/null
++++ b/tests/test_pipeline_cache.py
+@@ -0,0 +1,70 @@
++from __future__ import annotations
++
++import contextlib
++import io
++
++from storyteller.pipeline import run
++from storyteller.project import load, save
++from storyteller.quality import QA_VERSION
++from storyteller.storage import file_hash
++from tests.support import BookTestCase, Runner
++
++
++class QualityUpgradeTests(BookTestCase):
++    def test_old_numeric_false_pass_is_rechecked_without_resynthesis(self):
++        text = "行程约3-5公里，请沿着河边的小路继续向前走。"
++        root = self.book(text=text)
++        with contextlib.redirect_stdout(io.StringIO()):
++            run(root, self.cfg, Runner(), False)
++        project = load(root)
++        segment = project["segments"][0]
++        audio_hash = segment["audio_sha256"]
++        project["qa_version"] = 2
++        segment.update(attempts=3, total_attempts=3)
++        save(root, project)
++        runner = Runner(forbid_synth=True, recognized=text.replace("3-5", "35"))
++        with contextlib.redirect_stdout(io.StringIO()):
++            result = run(root, self.cfg, runner, False)
++        after = load(root)
++        self.assertEqual(after["qa_version"], QA_VERSION)
++        self.assertEqual([stage for stage, _ in runner.calls], ["check"])
++        self.assertEqual(after["segments"][0]["audio_sha256"], audio_hash)
++        self.assertEqual(after["segments"][0]["state"], "review")
++        self.assertIn("关键数值或正负号不一致", after["segments"][0]["check"]["reasons"])
++        self.assertEqual(result["ready_chapters"], 0)
++        self.assertEqual(len(list((root / "exports/history").glob("*"))), 2)
++
++
++class ResumeAndExportTests(BookTestCase):
++    def test_equal_size_export_corruption_is_repaired_without_resynthesis(self):
++        root = self.book()
++        with contextlib.redirect_stdout(io.StringIO()):
++            run(root, self.cfg, Runner(), False)
++        before = load(root)
++        output = root / "exports" / before["exports"]["c0001"]["mp3"]
++        data = bytearray(output.read_bytes())
++        data[-1] ^= 1
++        output.write_bytes(data)
++        runner = Runner(forbid_synth=True)
++        with contextlib.redirect_stdout(io.StringIO()):
++            run(root, self.cfg, runner, False)
++        after = load(root)
++        self.assertEqual(runner.calls, [])
++        self.assertEqual(before["segments"][0]["audio_sha256"], after["segments"][0]["audio_sha256"])
++        self.assertEqual(file_hash(output), after["exports"]["c0001"]["sha256"]["mp3"])
++        self.assertEqual(len(list((root / "exports/history").glob("*"))), 2)
++
++    def test_asr_failure_resumes_from_generated_audio(self):
++        root = self.book()
++        with contextlib.redirect_stdout(io.StringIO()), self.assertRaisesRegex(RuntimeError, "controlled ASR failure"):
++            run(root, self.cfg, Runner(fail_check=True), False)
++        before = load(root)
++        self.assertEqual(before["segments"][0]["state"], "generated")
++        runner = Runner(forbid_synth=True)
++        with contextlib.redirect_stdout(io.StringIO()):
++            summary = run(root, self.cfg, runner, False)
++        after = load(root)
++        self.assertEqual([stage for stage, _ in runner.calls], ["check"])
++        self.assertEqual(before["segments"][0]["audio_sha256"], after["segments"][0]["audio_sha256"])
++        self.assertEqual(after["segments"][0]["state"], "passed")
++        self.assertEqual(summary["ready_chapters"], 1)
+--- /dev/null
++++ b/tests/test_quality.py
+@@ -0,0 +1,90 @@
++from __future__ import annotations
++
++import copy
++import unittest
++
++from storyteller.config import DEFAULTS, validate_config
++from storyteller.quality import evaluate, normalize
++
++
++class NumericQualityTests(unittest.TestCase):
++    def setUp(self):
++        self.qa = copy.deepcopy(DEFAULTS["qa"])
++
++    def check(self, expected, recognized):
++        return evaluate(expected, recognized, max(2, len(normalize(expected)) / 4), self.qa)
++
++    def test_changed_numeric_structures_require_review(self):
++        # Isolate the numeric gate from ordinary CER and gap thresholds.
++        self.qa.update(max_cer=1, max_gap=1000)
++        for expected, recognized in (
++            ("3-5", "35"), ("3–5", "35"), ("3—5", "35"), ("3～5", "35"),
++            ("1/2", "12"), ("1⁄2", "12"), ("1、2、3", "123"),
++            ("1 2 3", "123"), ("1、2、3", "1、3、2"), ("3-5", "3、5"),
++            ("1/2", "2/1"), ("-5--1", "-5-1"), ("-5", "5"),
++        ):
++            with self.subTest(expected=expected, recognized=recognized):
++                result = self.check("数值为" + expected + "，请核对后保存记录。", "数值为" + recognized + "，请核对后保存记录。")
++                self.assertFalse(result["passed"])
++                self.assertIn("关键数值或正负号不一致", result["reasons"])
++
++    def test_equivalent_numeric_readings_still_pass(self):
++        for expected, recognized in (
++            ("行程3-5公里。", "行程三到五公里。"),
++            ("行程3~5公里。", "行程三至五公里。"),
++            ("温度-5--1度。", "温度零下五到负一度。"),
++            ("取总数的1/2。", "取总数的二分之一。"),
++            ("数值为-1/2。", "数值为负二分之一。"),
++            ("编号1、2、3。", "编号一，二，三。"),
++            ("温度-5度。", "温度零下五度。"),
++            ("预算-500元。", "预算负五百元。"),
++            ("数额1,234,567元。", "数额一百二十三万四千五百六十七元。"),
++            ("单价3.14元。", "单价三点一四元。"),
++            ("利率-3.5%。", "利率负百分之三点五。"),
++            ("出发时间12:30。", "出发时间十二点三十分。"),
++            ("今天是2026/10/21。", "今天是二零二六年十月二十一日。"),
++            ("今天是2026-10-21。", "今天是二零二六年十月二十一日。"),
++        ):
++            with self.subTest(expected=expected, recognized=recognized):
++                self.assertEqual(normalize(expected), normalize(recognized))
++                self.assertTrue(self.check(expected, recognized)["passed"])
++
++    def test_ordinary_punctuation_remains_ignorable(self):
++        for expected, recognized in (("你好，世界。", "你好世界"), ("第一章，雨夜。", "第一章雨夜")):
++            self.assertTrue(self.check(expected, recognized)["passed"])
++
++
++class CriticalTermTests(unittest.TestCase):
++    def test_changed_critical_term_is_detected_after_normalization(self):
++        for term, old, new in (("AI", "AI", ""), ("一鸣", "一鸣", "一明"), ("ＡＩ", "AI", "")):
++            with self.subTest(term=term):
++                qa = copy.deepcopy(DEFAULTS["qa"])
++                qa["critical_terms"] = [term]
++                expected = f"这次讨论围绕{old}展开，请各位认真核对每个环节并保存相关文字资料，以便后续继续阅读。"
++                recognized = expected.replace(old, new)
++                result = evaluate(expected, recognized, 12, qa)
++                self.assertLessEqual(result["cer"], qa["max_cer"])
++                self.assertFalse(result["passed"])
++                self.assertIn("疑似关键字差异：" + term, result["reasons"])
++
++    def test_equivalent_critical_term_spelling_passes(self):
++        for term, expected, recognized in (("AI", "这是AI技术。", "这是ai技术。"),
++                                             ("一鸣", "一鸣回家了。", "1鸣回家了。"),
++                                             ("1/2", "数值为1/2。", "数值为二分之一。")):
++            with self.subTest(term=term):
++                qa = copy.deepcopy(DEFAULTS["qa"])
++                qa["critical_terms"] = [term]
++                self.assertTrue(evaluate(expected, recognized, 3, qa)["passed"])
++
++    def test_empty_or_duplicate_normalized_critical_terms_are_rejected(self):
++        for terms, message in ((["!!!"], "规范化后为空"), (["AI", "ai"], "规范化后重复"),
++                               (["一鸣", "1鸣"], "规范化后重复")):
++            with self.subTest(terms=terms):
++                cfg = copy.deepcopy(DEFAULTS)
++                cfg["qa"]["critical_terms"] = terms
++                with self.assertRaisesRegex(ValueError, message):
++                    validate_config(cfg)
++
++
++if __name__ == "__main__":
++    unittest.main()
+--- /dev/null
++++ b/tests/test_studio_sessions.py
+@@ -0,0 +1,78 @@
++from __future__ import annotations
++
++import contextlib
++import http.cookiejar
++import json
++import threading
++import urllib.error
++import urllib.request
++
++from storyteller.studio import Studio, StudioServer
++from tests.support import BookTestCase
++
++
++class StudioSessionTests(BookTestCase):
++    @contextlib.contextmanager
++    def panels(self):
++        servers = [StudioServer(Studio(self.book(name=name))) for name in ("first", "second")]
++        threads = [threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True)
++                   for server in servers]
++        for thread in threads:
++            thread.start()
++        try:
++            yield servers
++        finally:
++            for server in servers:
++                server.shutdown()
++                server.server_close()
++            for thread in threads:
++                thread.join(timeout=3)
++
++    def request(self, opener, url, headers=None, data=None):
++        request = urllib.request.Request(url, headers=headers or {}, data=data)
++        try:
++            response = opener.open(request, timeout=5)
++        except urllib.error.HTTPError as error:
++            response = error
++        with response:
++            return response.status, response.read(), response.headers
++
++    def browser(self):
++        return urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
++
++    def test_two_panels_in_one_browser_keep_both_audio_sessions(self):
++        with self.panels() as (first, second):
++            browser = self.browser()
++            self.assertEqual(self.request(browser, first.url)[0], 200)
++            self.assertEqual(self.request(browser, first.origin + "/media/input/reference.wav")[0], 200)
++            self.assertEqual(self.request(browser, second.url)[0], 200)
++            for server in (first, second, first):
++                self.assertEqual(self.request(browser, server.origin + "/media/input/reference.wav")[0], 200)
++                self.assertEqual(self.request(browser, server.origin + "/api/state")[0], 200)
++
++    def test_anonymous_and_cross_session_tokens_remain_rejected(self):
++        with self.panels() as (first, second):
++            anonymous, browser = urllib.request.build_opener(), self.browser()
++            self.request(browser, first.url)
++            for url in ("/api/state", "/media/input/reference.wav"):
++                self.assertEqual(self.request(anonymous, first.origin + url)[0], 403)
++                self.assertEqual(self.request(browser, first.origin + url, {"X-Shuoshu-Token": second.studio.token})[0], 403)
++            # A valid cookie alone cannot authorize a state-changing request.
++            headers = {"Content-Type": "application/json", "Origin": first.origin}
++            data = json.dumps({"action": "stop"}).encode()
++            self.assertEqual(self.request(browser, first.origin + "/api/action", headers, data)[0], 403)
++            headers["X-Shuoshu-Token"] = first.studio.token
++            self.assertEqual(self.request(browser, first.origin + "/api/action", headers, data)[0], 200)
++            headers["Origin"] = second.origin
++            self.assertEqual(self.request(browser, first.origin + "/api/action", headers, data)[0], 403)
++
++    def test_media_range_and_path_guards_work_with_both_cookies(self):
++        with self.panels() as (first, second):
++            browser = self.browser()
++            for server in (first, second):
++                self.request(browser, server.url)
++            for server in (first, second):
++                status, body, headers = self.request(browser, server.origin + "/media/input/reference.wav", {"Range": "bytes=0-31"})
++                self.assertEqual((status, len(body)), (206, 32))
++                self.assertTrue(headers["Content-Range"].startswith("bytes 0-31/"))
++                self.assertEqual(self.request(browser, server.origin + "/media/../project.json")[0], 404)

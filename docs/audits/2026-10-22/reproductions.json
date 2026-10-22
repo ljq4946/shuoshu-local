@@ -1,0 +1,235 @@
+{
+  "numeric_boundaries": {
+    "reproduced": true,
+    "false_acceptances": [
+      {
+        "case": "range",
+        "expected": "行程约3-5公里，请沿着河边的小路一直向前走。",
+        "recognized": "行程约35公里，请沿着河边的小路一直向前走。",
+        "normalized_expected": "行程约35公里请沿着河边的小路1直向前走",
+        "normalized_recognized": "行程约35公里请沿着河边的小路1直向前走",
+        "result": {
+          "passed": true,
+          "cer": 0.0,
+          "recognized": "行程约35公里，请沿着河边的小路一直向前走。",
+          "reasons": [],
+          "differences": [],
+          "duration": 8,
+          "rms_db": -20
+        }
+      },
+      {
+        "case": "fraction",
+        "expected": "取总数的1/2，然后按顺序放入盒子里面保存。",
+        "recognized": "取总数的12，然后按顺序放入盒子里面保存。",
+        "normalized_expected": "取总数的12然后按顺序放入盒子里面保存",
+        "normalized_recognized": "取总数的12然后按顺序放入盒子里面保存",
+        "result": {
+          "passed": true,
+          "cer": 0.0,
+          "recognized": "取总数的12，然后按顺序放入盒子里面保存。",
+          "reasons": [],
+          "differences": [],
+          "duration": 8,
+          "rms_db": -20
+        }
+      },
+      {
+        "case": "list",
+        "expected": "编号1、2、3，请逐项完成并保存这次检查的全部记录。",
+        "recognized": "编号123，请逐项完成并保存这次检查的全部记录。",
+        "normalized_expected": "编号123请逐项完成并保存这次检查的全部记录",
+        "normalized_recognized": "编号123请逐项完成并保存这次检查的全部记录",
+        "result": {
+          "passed": true,
+          "cer": 0.0,
+          "recognized": "编号123，请逐项完成并保存这次检查的全部记录。",
+          "reasons": [],
+          "differences": [],
+          "duration": 8,
+          "rms_db": -20
+        }
+      }
+    ],
+    "previous_regression_controls": [
+      {
+        "case": "negative_sign",
+        "expected_pass": false,
+        "result": {
+          "passed": false,
+          "cer": 0.05882,
+          "recognized": "预算5元，请仔细核对数额并记录下来。",
+          "reasons": [
+            "关键数值或正负号不一致"
+          ],
+          "differences": [
+            {
+              "type": "delete",
+              "expected": "负",
+              "heard": ""
+            }
+          ],
+          "duration": 4,
+          "rms_db": -20
+        }
+      },
+      {
+        "case": "negative_equivalence",
+        "expected_pass": true,
+        "result": {
+          "passed": true,
+          "cer": 0.0,
+          "recognized": "温度为零下五度。",
+          "reasons": [],
+          "differences": [],
+          "duration": 4,
+          "rms_db": -20
+        }
+      },
+      {
+        "case": "time_equivalence",
+        "expected_pass": true,
+        "result": {
+          "passed": true,
+          "cer": 0.0,
+          "recognized": "出发时间十二点三十分。",
+          "reasons": [],
+          "differences": [],
+          "duration": 4,
+          "rms_db": -20
+        }
+      },
+      {
+        "case": "date_equivalence",
+        "expected_pass": true,
+        "result": {
+          "passed": true,
+          "cer": 0.0,
+          "recognized": "今天是二零二六年十月二十一日。",
+          "reasons": [],
+          "differences": [],
+          "duration": 4,
+          "rms_db": -20
+        }
+      }
+    ]
+  },
+  "critical_terms": {
+    "reproduced": true,
+    "cases": [
+      {
+        "critical_term": "AI",
+        "expected": "这次讲解围绕AI技术的研究展开，请各位认真核对每个环节并保存相关文字资料，以便后续继续阅读。",
+        "recognized": "这次讲解围绕技术的研究展开，请各位认真核对每个环节并保存相关文字资料，以便后续继续阅读。",
+        "result": {
+          "passed": true,
+          "cer": 0.04651,
+          "recognized": "这次讲解围绕技术的研究展开，请各位认真核对每个环节并保存相关文字资料，以便后续继续阅读。",
+          "reasons": [],
+          "differences": [
+            {
+              "type": "delete",
+              "expected": "ai",
+              "heard": ""
+            }
+          ],
+          "duration": 12,
+          "rms_db": -20
+        }
+      },
+      {
+        "critical_term": "一鸣",
+        "expected": "这次讨论结束以后，一鸣沿着门口的小路返回住处，准备继续核对今天整理好的材料并保存记录。",
+        "recognized": "这次讨论结束以后，一明沿着门口的小路返回住处，准备继续核对今天整理好的材料并保存记录。",
+        "result": {
+          "passed": true,
+          "cer": 0.025,
+          "recognized": "这次讨论结束以后，一明沿着门口的小路返回住处，准备继续核对今天整理好的材料并保存记录。",
+          "reasons": [],
+          "differences": [
+            {
+              "type": "replace",
+              "expected": "鸣",
+              "heard": "明"
+            }
+          ],
+          "duration": 12,
+          "rms_db": -20
+        }
+      }
+    ]
+  },
+  "chapter_detection": {
+    "reproduced": true,
+    "cases": [
+      {
+        "body_line": "第一回见面时我们都还年轻",
+        "expected_chapters": 2,
+        "actual_titles": [
+          "第一章 开始",
+          "第一回见面时我们都还年轻",
+          "第二章 结束"
+        ]
+      },
+      {
+        "body_line": "第一回见面时……",
+        "expected_chapters": 2,
+        "actual_titles": [
+          "第一章 开始",
+          "第一回见面时……",
+          "第二章 结束"
+        ]
+      },
+      {
+        "body_line": "第一回见面时我们都还年轻。",
+        "expected_chapters": 2,
+        "actual_titles": [
+          "第一章 开始",
+          "第二章 结束"
+        ]
+      }
+    ]
+  },
+  "export_cache_regression": {
+    "passed": true,
+    "same_size_corruption_repaired": true,
+    "resume_model_calls": [],
+    "segment_audio_reused": true,
+    "archived_files": 2
+  },
+  "asr_resume_regression": {
+    "passed": true,
+    "after_error_states": [
+      "generated"
+    ],
+    "resume_calls": [
+      {
+        "stage": "check",
+        "jobs": [
+          "c0001_s0001"
+        ]
+      }
+    ],
+    "ready_chapters": 1
+  },
+  "sentence_gap_cache": {
+    "reproduced": true,
+    "evidence_kind": "real controller/FFmpeg with simulated model; worker options recorded",
+    "internal_inference_gap_before_ms": 180,
+    "internal_inference_gap_after_ms": 1000,
+    "generation_profiles_equal": true,
+    "cached_segment_audio_reused": true,
+    "resume_model_calls": [],
+    "chapter_export_signature_changed": true
+  },
+  "multi_panel_media_session": {
+    "reproduced": true,
+    "single_panel_audio_http_status": 200,
+    "second_panel_audio_http_status": 200,
+    "first_panel_after_second_session_http_status": 403,
+    "first_panel_api_with_token_http_status": 200,
+    "range_request_http_status": 206,
+    "path_traversal_http_status": 404,
+    "anonymous_api_http_status": 403
+  }
+}
